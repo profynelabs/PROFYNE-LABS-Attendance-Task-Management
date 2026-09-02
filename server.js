@@ -13,7 +13,7 @@ const activityLogs = [];
 const otpStore = {};
 
 // Resend ক্লায়েন্ট কনফিগারেশন (আপনার Resend API Key এখানে বসাবেন অথবা প্রসেস এনভায়রনমেন্ট ব্যবহার করবেন)
-const resend = new Resend(process.env.RESEND_API_KEY || 'আপনার_রিয়েল_রෙසেন্ড_এপিআই_কি_এখানে_দিন');
+const resend = new Resend(process.env.RESEND_API_KEY || 'একানে দিন');
 
 // বাংলাদেশ সময়ের (BD Time) সঠিক ফরম্যাট পাওয়ার হেল্পার ফাংশন
 function getBangladeshTime() {
