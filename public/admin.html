@@ -8,9 +8,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-6">
 
-    <div class="max-w-6xl mx-auto space-y-6">
+    <!-- Admin Login Section -->
+    <div id="loginContainer"
+        class="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl space-y-6">
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-bold text-emerald-400">Admin Portal</h1>
+            <p class="text-xs text-slate-400">PROFYNE LABS - Secure Access</p>
+        </div>
+
+        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Username</label>
+                <input type="text" id="adminUser" required placeholder="Enter admin username"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+                <input type="password" id="adminPass" required placeholder="Enter admin password"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+            </div>
+
+            <div id="loginError" class="text-xs text-red-400 text-center hidden">Invalid username or password!</div>
+
+            <button type="submit"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-xs font-semibold shadow-lg transition">
+                Login to Dashboard
+            </button>
+        </form>
+    </div>
+
+    <!-- Admin Dashboard Section (Hidden until login) -->
+    <div id="dashboardContainer" class="hidden max-w-6xl w-full mx-auto space-y-6">
         <!-- Header Section -->
         <div
             class="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
@@ -33,6 +64,11 @@
                 <button onclick="fetchUsers()"
                     class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
                     🔄 Refresh
+                </button>
+
+                <button onclick="adminLogout()"
+                    class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/35">
+                    Logout
                 </button>
             </div>
         </div>
@@ -112,11 +148,44 @@
     </div>
 
     <script>
+        // এখানে আপনার নির্দিষ্ট ইউজারনেম ও পাসওয়ার্ড সেট করা আছে
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "profyne2026"; // আপনার ইচ্ছামতো পাসওয়ার্ড এখানে পরিবর্তন করতে পারেন
+
         let allUsersData = [];
 
         window.onload = function () {
-            fetchUsers();
+            if (sessionStorage.getItem("isAdminLoggedIn") === "true") {
+                showDashboard();
+            }
         };
+
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            const errorMsg = document.getElementById('loginError');
+
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                sessionStorage.setItem("isAdminLoggedIn", "true");
+                showDashboard();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            const dash = document.getElementById('dashboardContainer');
+            dash.classList.remove('hidden');
+            document.body.className = "bg-slate-950 text-slate-100 min-h-screen p-6";
+            fetchUsers();
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem("isAdminLoggedIn");
+            location.reload();
+        }
 
         function switchView(viewType) {
             const tableView = document.getElementById('tableViewContainer');
