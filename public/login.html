@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Corporate Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-900 text-slate-100 flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl border border-slate-700">
+        <h2 class="text-xl sm:text-2xl font-bold text-center text-emerald-400 mb-6">Member Login</h2>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+            <input type="tel" id="loginPhone" placeholder="Phone Number" required
+                class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+            <input type="password" id="loginPassword" placeholder="Password" required
+                class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+            <button type="submit"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-medium shadow-lg transition text-sm">Login
+                to Dashboard</button>
+        </form>
+
+        <p class="text-xs text-center text-slate-400 mt-6">Need an account? <a href="register.html"
+                class="text-emerald-400 hover:underline">Register</a></p>
+    </div>
+
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('loginPhone').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({phone, password})
+            });
+            const result = await res.json();
+            if (result.success) {
+                localStorage.setItem('corporateUser', JSON.stringify(result.user));
+                window.location.href = "dashboard.html";
+            } else {
+                alert(result.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

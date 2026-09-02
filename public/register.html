@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PROFYNE LABS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-emerald-400">PROFYNE LABS</h2>
+            <p class="text-xs text-slate-400 mt-1">Create your corporate account</p>
+        </div>
+
+        <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4">
+
+            <div class="flex items-center gap-4 bg-slate-950 p-3 rounded-xl border border-slate-700">
+                <img id="previewImg"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                    class="w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-md">
+                <div class="flex-1 min-w-0">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Profile Picture (JPG, JPEG, PNG,
+                        GIF)</label>
+                    <input type="file" id="profilePicInput" accept=".jpg, .jpeg, .png, .gif"
+                        onchange="previewImage(event)"
+                        class="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer w-full">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+                <input type="text" id="fullname" required
+                    class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-white"
+                    placeholder="Md Raihan Ali">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Designation</label>
+                <input type="text" id="designation" required
+                    class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-white"
+                    placeholder="Web Designer">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Email</label>
+                <input type="email" id="email" required
+                    class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-white"
+                    placeholder="raihan@corp.com">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
+                <input type="text" id="phone" required
+                    class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-white"
+                    placeholder="01604308869">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" required
+                        class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-emerald-500 text-white pr-10"
+                        placeholder="••••••••">
+                    <button type="button" onclick="togglePassword()"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-medium focus:outline-none">
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-sm font-semibold shadow-lg transition mt-2">Proceed
+                to Verification</button>
+        </form>
+
+        <div id="otpSection" class="hidden mt-6 pt-6 border-t border-slate-800 space-y-4">
+            <div class="text-center">
+                <h3 class="text-sm font-bold text-emerald-400">Enter Verification OTP</h3>
+                <p id="debugOtpText" class="text-xs text-amber-400 mt-1"></p>
+            </div>
+            <input type="text" id="otpInput" maxlength="4"
+                class="w-full text-center tracking-widest text-2xl font-bold py-2 bg-slate-950 border border-emerald-500/50 rounded-xl text-white focus:outline-none"
+                placeholder="••••">
+            <button onclick="verifyOtp()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold shadow-lg transition">Verify
+                & Complete</button>
+        </div>
+
+        <div class="mt-6 text-center text-xs text-slate-400">
+            Already registered? <a href="login.html" class="text-emerald-400 font-semibold hover:underline">Login
+                here</a>
+        </div>
+    </div>
+
+    <div id="customModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-emerald-500/40 w-full max-w-sm p-6 rounded-2xl shadow-2xl text-center space-y-4 transform scale-95 transition-transform duration-300"
+            id="modalBox">
+            <div id="modalIcon"
+                class="w-14 h-14 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner">
+                ✓</div>
+            <div>
+                <h3 id="modalTitle" class="text-lg font-bold text-white">Success</h3>
+                <p id="modalMessage" class="text-xs text-slate-300 mt-1.5 leading-relaxed">Verified successfully!
+                    Redirecting...</p>
+            </div>
+            <button id="modalBtn" onclick="closeCustomModal()"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium shadow-lg transition">OK</button>
+        </div>
+    </div>
+
+    <script>
+        let base64Image = "";
+        let tempPhone = "";
+        let redirectAfterClose = false;
+
+        // পাসওয়ার্ড টগল করার ফাংশন
+        function togglePassword() {
+            const pwdInput = document.getElementById('password');
+            if (pwdInput.type === "password") {
+                pwdInput.type = "text";
+            } else {
+                pwdInput.type = "password";
+            }
+        }
+
+        // ইমেজ সিলেক্ট করলে প্রিভিউ দেখানোর ফাংশন
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    base64Image = e.target.result;
+                    document.getElementById('previewImg').src = base64Image;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showCustomModal(title, message, isSuccess = true, redirect = false) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            redirectAfterClose = redirect;
+
+            const icon = document.getElementById('modalIcon');
+            if (isSuccess) {
+                icon.className = "w-14 h-14 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner";
+                icon.innerText = "✓";
+            } else {
+                icon.className = "w-14 h-14 bg-red-950 border border-red-500 text-red-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner";
+                icon.innerText = "✕";
+            }
+
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customModal').classList.add('hidden');
+            if (redirectAfterClose) {
+                window.location.href = "login.html";
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const fullname = document.getElementById('fullname').value;
+            const designation = document.getElementById('designation').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+
+            // যদি ইউজার ছবি আপলোড না করে তবে ডিফল্ট ইমেজ ব্যবহার হবে
+            const profilePic = base64Image || document.getElementById('previewImg').src;
+
+            tempPhone = phone;
+
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullname, designation, email, phone, password, profilePic })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('otpSection').classList.remove('hidden');
+                document.getElementById('debugOtpText').innerText = `[Demo OTP: ${data.debugOtp}]`;
+                showCustomModal("OTP Sent", "An OTP has been generated for verification.", true, false);
+            } else {
+                showCustomModal("Error", data.message, false, false);
+            }
+        }
+
+        async function verifyOtp() {
+            const otp = document.getElementById('otpInput').value;
+            const res = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: tempPhone, otp })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showCustomModal("Success", "Verified successfully! Redirecting to login...", true, true);
+            } else {
+                showCustomModal("Verification Failed", data.message, false, false);
+            }
+        }
+    </script>
+</body>
+
+</html>

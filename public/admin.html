@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PROFYNE LABS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <!-- Header Section -->
+        <div
+            class="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <div>
+                <h1 class="text-2xl font-bold text-emerald-400">PROFYNE LABS - Admin Dashboard</h1>
+                <p class="text-xs text-slate-400 mt-1">Monitor and manage all corporate accounts & team activities</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- View Switcher Buttons -->
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+                    <button onclick="switchView('table')" id="tableViewBtn"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition">Table
+                        View</button>
+                    <button onclick="switchView('card')" id="cardViewBtn"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Card
+                        View</button>
+                </div>
+
+                <button onclick="fetchUsers()"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats / Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <p class="text-xs text-slate-400 font-medium">Total Registered Users</p>
+                <h3 id="totalUsersCount" class="text-3xl font-extrabold text-emerald-400 mt-2">0</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <p class="text-xs text-slate-400 font-medium">System Status</p>
+                <h3 class="text-3xl font-extrabold text-blue-400 mt-2">Active</h3>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <p class="text-xs text-slate-400 font-medium">Access Control</p>
+                <h3 class="text-3xl font-extrabold text-amber-400 mt-2">Super Admin</h3>
+            </div>
+        </div>
+
+        <!-- Table View Container -->
+        <div id="tableViewContainer" class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider">User Monitoring List (Table)</h2>
+                <span class="text-xs text-slate-400" id="tableCountText">Showing 0 users</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                            <th class="p-4 font-semibold">Profile</th>
+                            <th class="p-4 font-semibold">Full Name</th>
+                            <th class="p-4 font-semibold">Designation</th>
+                            <th class="p-4 font-semibold">Email</th>
+                            <th class="p-4 font-semibold">Phone</th>
+                            <th class="p-4 font-semibold">Password</th>
+                            <th class="p-4 font-semibold text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody" class="divide-y divide-slate-800/60">
+                        <tr>
+                            <td colspan="7" class="p-6 text-center text-slate-500">Loading user data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Card View Container (Hidden by default) -->
+        <div id="cardViewContainer" class="hidden space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider">User Monitoring List (Cards)</h2>
+                <span class="text-xs text-slate-400" id="cardCountText">Showing 0 users</span>
+            </div>
+            <div id="userCardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic User Cards will load here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Modal -->
+    <div id="customModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-slate-900 border border-emerald-500/40 w-full max-w-sm p-6 rounded-2xl shadow-2xl text-center space-y-4">
+            <div id="modalIcon"
+                class="w-14 h-14 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner">
+                ✓</div>
+            <div>
+                <h3 id="modalTitle" class="text-lg font-bold text-white">Notice</h3>
+                <p id="modalMessage" class="text-xs text-slate-300 mt-1.5 leading-relaxed">Action completed
+                    successfully.</p>
+            </div>
+            <button onclick="closeCustomModal()"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium shadow-lg transition">OK</button>
+        </div>
+    </div>
+
+    <script>
+        let allUsersData = [];
+
+        window.onload = function () {
+            fetchUsers();
+        };
+
+        function switchView(viewType) {
+            const tableView = document.getElementById('tableViewContainer');
+            const cardView = document.getElementById('cardViewContainer');
+            const tableBtn = document.getElementById('tableViewBtn');
+            const cardBtn = document.getElementById('cardViewBtn');
+
+            if (viewType === 'table') {
+                tableView.classList.remove('hidden');
+                cardView.classList.add('hidden');
+                tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition";
+                cardBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+            } else {
+                tableView.classList.add('hidden');
+                cardView.classList.remove('hidden');
+                cardBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition";
+                tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+            }
+        }
+
+        function showCustomModal(title, message, isSuccess = true) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const icon = document.getElementById('modalIcon');
+            if (isSuccess) {
+                icon.className = "w-14 h-14 bg-emerald-950 border border-emerald-500 text-emerald-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner";
+                icon.innerText = "✓";
+            } else {
+                icon.className = "w-14 h-14 bg-red-950 border border-red-500 text-red-400 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner";
+                icon.innerText = "✕";
+            }
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch('/api/admin/users');
+                const data = await res.json();
+
+                if (data.success) {
+                    allUsersData = data.users;
+                    document.getElementById('totalUsersCount').innerText = allUsersData.length;
+                    document.getElementById('tableCountText').innerText = `Showing ${allUsersData.length} users`;
+                    document.getElementById('cardCountText').innerText = `Showing ${allUsersData.length} users`;
+
+                    renderTable(allUsersData);
+                    renderCards(allUsersData);
+                } else {
+                    document.getElementById('totalUsersCount').innerText = "0";
+                    document.getElementById('userTableBody').innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">No registered users found.</td></tr>`;
+                    document.getElementById('userCardGrid').innerHTML = `<p class="text-slate-500 col-span-full text-center py-6">No registered users found.</p>`;
+                }
+            } catch (err) {
+                console.error(err);
+                showCustomModal("Error", "Failed to load users data from server.", false);
+            }
+        }
+
+        function renderTable(users) {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = "";
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">No registered users found.</td></tr>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <img src="${user.profilePic || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" class="w-10 h-10 rounded-full object-cover border border-emerald-500">
+                    </td>
+                    <td class="p-4 font-semibold text-white">${user.fullname}</td>
+                    <td class="p-4 text-slate-300">${user.designation}</td>
+                    <td class="p-4 text-slate-400">${user.email}</td>
+                    <td class="p-4 text-slate-300">${user.phone}</td>
+                    <td class="p-4 font-mono text-amber-400">${user.password}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteUser('${user.id}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition border border-red-500/30">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCards(users) {
+            const grid = document.getElementById('userCardGrid');
+            grid.innerHTML = "";
+
+            if (users.length === 0) {
+                grid.innerHTML = `<p class="text-slate-500 col-span-full text-center py-6">No registered users found.</p>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between space-y-4";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${user.profilePic || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" class="w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-md">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-white truncate">${user.fullname}</h3>
+                            <p class="text-xs text-emerald-400 font-medium truncate">${user.designation}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 text-xs bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+                        <p class="text-slate-300 flex justify-between"><span class="text-slate-500">Email:</span> <span class="truncate ml-2 text-slate-400">${user.email}</span></p>
+                        <p class="text-slate-300 flex justify-between"><span class="text-slate-500">Phone:</span> <span class="font-medium">${user.phone}</span></p>
+                        <p class="text-slate-300 flex justify-between"><span class="text-slate-500">Password:</span> <span class="font-mono text-amber-400">${user.password}</span></p>
+                    </div>
+                    <button onclick="deleteUser('${user.id}')" class="w-full bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2 rounded-xl text-xs font-semibold transition border border-red-500/30">Delete Account</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function deleteUser(id) {
+            if (confirm("Are you sure you want to delete this user?")) {
+                try {
+                    const res = await fetch(`/api/admin/user/${id}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showCustomModal("Success", "User deleted successfully!");
+                        fetchUsers();
+                    } else {
+                        showCustomModal("Error", data.message, false);
+                    }
+                } catch (err) {
+                    showCustomModal("Error", "Something went wrong!", false);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
