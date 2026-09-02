@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'profynelabs@gmail.com',       // আপনার জিমেইল আইডি দিন
-        pass: 'omnm dkle fgps vkkx'           // জিমেইলের App Password দিন
+        pass: 'omnmdklefgpsvkkx'           // জিমেইলের App Password দিন
     }
 });
 
