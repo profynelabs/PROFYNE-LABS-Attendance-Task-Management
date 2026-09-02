@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer'); // ইমেইল পাঠানোর জন্য nodemailer যুক্ত করা হলো
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -11,7 +12,16 @@ const users = [];
 const activityLogs = [];
 const otpStore = {};
 
-// বাংলাদেশ সময়ের (BD Time) সঠিক ফরম্যাট পাওয়ার হেল্পার ফাংশন
+// জিমেইল ট্রান্সপোর্টার কনফিগারেশন (আপনার জিমেইল এবং অ্যাপ পাসওয়ার্ড এখানে বসাবেন)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'profynelabs@gmail.com',       // আপনার জিমেইল আইডি দিন
+        pass: 'omnm dkle fgps vkkx'           // জিমেইলের App Password দিন
+    }
+});
+
+// বাংলাদেশ সময়ের (BD Time) সঠিক ফরম্যাট পাওয়ার হেল্পার ফাংশন
 function getBangladeshTime() {
     return new Date().toLocaleTimeString('en-US', {
         timeZone: 'Asia/Dhaka',
@@ -27,7 +37,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.post('/api/register', (req, res) => {
+// রেজিস্ট্রেশন ও ইমেইলে ওটিপি পাঠানোর রুট
+app.post('/api/register', async (req, res) => {
     const { fullname, designation, email, phone, password, profilePic } = req.body;
 
     if (users.find(u => u.phone === phone)) {
@@ -37,8 +48,23 @@ app.post('/api/register', (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     otpStore[phone] = { fullname, designation, email, phone, password, profilePic, otp };
 
-    console.log(`[OTP Generated] For ${phone}: ${otp}`);
-    res.json({ success: true, message: "OTP sent successfully!", debugOtp: otp });
+    // ইউজারের ইমেইলে ওটিপি পাঠানোর কোড
+    try {
+        const mailOptions = {
+            from: '"Profyne Labs" <profynelabs@gmail.com>',
+            to: email, // রেজিস্ট্রেশন ফর্মে দেওয়া ইউজারের ইমেইল
+            subject: 'Your Account Verification OTP - Profyne Labs',
+            text: `Hello ${fullname},\n\nYour OTP verification code is: ${otp}\n\nPlease use this code to complete your registration.`
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[Email OTP Sent] To ${email}: ${otp}`);
+
+        res.json({ success: true, message: "OTP sent to your email successfully!" });
+    } catch (error) {
+        console.error("Email send error:", error);
+        res.status(500).json({ success: false, message: "Failed to send OTP email!" });
+    }
 });
 
 app.post('/api/verify-otp', (req, res) => {
@@ -74,7 +100,7 @@ app.post('/api/login', (req, res) => {
         user.status = "Active / Present";
         user.clockInTime = Date.now();
 
-        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-ইন (Clocked In) রেকর্ড করা হলো
+        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-ইন (Clocked In) রেকর্ড করা হলো
         const bdTime = getBangladeshTime();
         activityLogs.unshift({ phone, name: user.fullname, action: "Clocked In", time: bdTime });
 
@@ -95,7 +121,7 @@ app.post('/api/logout', (req, res) => {
             user.clockInTime = null;
         }
 
-        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-আউট (Clocked Out) রেকর্ড করা হলো
+        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-আউট (Clocked Out) রেকর্ড করা হলো
         const bdTime = getBangladeshTime();
         activityLogs.unshift({ phone, name: user.fullname, action: "Clocked Out", time: bdTime });
     }
@@ -178,5 +204,5 @@ app.delete('/api/admin/user/:id', (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log(`PROFYNE LABS Server running on http://localhost:3000 (BD Time Applied)`);
+    console.log(`PROFYNE LABS Server running on http://localhost:3000 (Email OTP & BD Time Applied)`);
 });
