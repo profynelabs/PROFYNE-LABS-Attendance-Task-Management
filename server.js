@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const nodemailer = require('nodemailer'); // ইমেইল পাঠানোর জন্য nodemailer যুক্ত করা হলো
+const { Resend } = require('resend'); // Resend প্যাকেজ যুক্ত করা হলো
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -12,14 +12,8 @@ const users = [];
 const activityLogs = [];
 const otpStore = {};
 
-// জিমেইল ট্রান্সপোর্টার কনফিগারেশন (আপনার জিমেইল এবং অ্যাপ পাসওয়ার্ড এখানে বসাবেন)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'profynelabs@gmail.com',       // আপনার জিমেইল আইডি দিন
-        pass: 'omnmdklefgpsvkkx'             // জিমেইলের App Password দিন
-    }
-});
+// Resend ক্লায়েন্ট কনফিগারেশন (আপনার Resend API Key এখানে বসাবেন অথবা প্রসেস এনভায়রনমেন্ট ব্যবহার করবেন)
+const resend = new Resend(process.env.RESEND_API_KEY || 'আপনার_রিয়েল_রෙසেন্ড_এপিআই_কি_এখানে_দিন');
 
 // বাংলাদেশ সময়ের (BD Time) সঠিক ফরম্যাট পাওয়ার হেল্পার ফাংশন
 function getBangladeshTime() {
@@ -48,18 +42,16 @@ app.post('/api/register', async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     otpStore[phone] = { fullname, designation, email, phone, password, profilePic, otp };
 
-    // ইউজারের ইমেইলে ওটিপি পাঠানোর কোড
+    // Resend ব্যবহার করে ইউজারের ইমেইলে ওটিপি পাঠানোর কোড
     try {
-        const mailOptions = {
-            from: '"Profyne Labs" <profynelabs@gmail.com>',
+        await resend.emails.send({
+            from: 'Profyne Labs <onboarding@resend.dev>',
             to: email, // রেজিস্ট্রেশন ফর্মে দেওয়া ইউজারের ইমেইল
             subject: 'Your Account Verification OTP - Profyne Labs',
-            text: `Hello ${fullname},\n\nYour OTP verification code is: ${otp}\n\nPlease use this code to complete your registration.`
-        };
+            html: `<p>Hello ${fullname},</p><p>Your OTP verification code is: <strong>${otp}</strong></p><p>Please use this code to complete your registration.</p>`
+        });
 
-        await transporter.sendMail(mailOptions);
-        console.log(`[Email OTP Sent] To ${email}: ${otp}`);
-
+        console.log(`[Email OTP Sent via Resend] To ${email}: ${otp}`);
         res.json({ success: true, message: "OTP sent to your email successfully!" });
     } catch (error) {
         console.error("Email send error:", error);
@@ -203,8 +195,8 @@ app.delete('/api/admin/user/:id', (req, res) => {
     }
 });
 
-// রেন্ডার এবং লোকাল উভয় সার্ভারের জন্য ডায়নামিক পোর্ট সেটআপ
+// রেন্ডার এবং লোকাল উভয় সার্ভারের জন্য ডায়নামিক পোর্ট সেটআপ
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`PROFYNE LABS Server running on port ${PORT} (Email OTP & BD Time Applied)`);
+    console.log(`PROFYNE LABS Server running on port ${PORT} (Resend Email OTP & BD Time Applied)`);
 });
