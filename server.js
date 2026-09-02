@@ -11,6 +11,17 @@ const users = [];
 const activityLogs = [];
 const otpStore = {};
 
+// বাংলাদেশ সময়ের (BD Time) সঠিক ফরম্যাট পাওয়ার হেল্পার ফাংশন
+function getBangladeshTime() {
+    return new Date().toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Dhaka',
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
 // হোম পেজ বা রুট ইউআরএল এ ভিজিট করলে সরাসরি লগইন পেজ দেখাবে
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -62,7 +73,11 @@ app.post('/api/login', (req, res) => {
     if (user) {
         user.status = "Active / Present";
         user.clockInTime = Date.now();
-        activityLogs.unshift({ phone, name: user.fullname, action: "Clocked In", time: new Date().toLocaleTimeString() });
+
+        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-ইন (Clocked In) রেকর্ড করা হলো
+        const bdTime = getBangladeshTime();
+        activityLogs.unshift({ phone, name: user.fullname, action: "Clocked In", time: bdTime });
+
         res.json({ success: true, user });
     } else {
         res.status(401).json({ success: false, message: "Invalid phone or password!" });
@@ -79,7 +94,10 @@ app.post('/api/logout', (req, res) => {
             user.totalSeconds += sessionDuration;
             user.clockInTime = null;
         }
-        activityLogs.unshift({ phone, name: user.fullname, action: "Clocked Out", time: new Date().toLocaleTimeString() });
+
+        // এখানে বাংলাদেশ সময় অনুযায়ী চেক-আউট (Clocked Out) রেকর্ড করা হলো
+        const bdTime = getBangladeshTime();
+        activityLogs.unshift({ phone, name: user.fullname, action: "Clocked Out", time: bdTime });
     }
     res.json({ success: true });
 });
@@ -160,5 +178,5 @@ app.delete('/api/admin/user/:id', (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log(`PROFYNE LABS Server running on http://localhost:3000`);
+    console.log(`PROFYNE LABS Server running on http://localhost:3000 (BD Time Applied)`);
 });
