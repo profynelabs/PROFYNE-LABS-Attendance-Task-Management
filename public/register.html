@@ -85,6 +85,13 @@
             <button onclick="verifyOtp()"
                 class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold shadow-lg transition">Verify
                 & Complete</button>
+
+            <div class="text-center pt-2">
+                <button type="button" onclick="resendOtp()"
+                    class="text-xs text-emerald-400 hover:underline font-medium">
+                    Didn't receive code? <span class="font-bold">Resend OTP</span>
+                </button>
+            </div>
         </div>
 
         <div class="mt-6 text-center text-xs text-slate-400">
@@ -113,9 +120,10 @@
     <script>
         let base64Image = "";
         let tempPhone = "";
+        let lastRegisterData = null; // রিসেন্ড করার জন্য ডাটা সংরক্ষণ করতে
         let redirectAfterClose = false;
 
-        // পাসওয়ার্ড টগল করার ফাংশন
+        // পাসওয়ার্ড টগল করার ফাংশন
         function togglePassword() {
             const pwdInput = document.getElementById('password');
             if (pwdInput.type === "password") {
@@ -170,23 +178,43 @@
             const phone = document.getElementById('phone').value;
             const password = document.getElementById('password').value;
 
-            // যদি ইউজার ছবি আপলোড না করে তবে ডিফল্ট ইমেজ ব্যবহার হবে
             const profilePic = base64Image || document.getElementById('previewImg').src;
 
             tempPhone = phone;
+            lastRegisterData = { fullname, designation, email, phone, password, profilePic };
 
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fullname, designation, email, phone, password, profilePic })
+                body: JSON.stringify(lastRegisterData)
             });
             const data = await res.json();
 
             if (data.success) {
                 document.getElementById('registerForm').classList.add('hidden');
                 document.getElementById('otpSection').classList.remove('hidden');
-                document.getElementById('debugOtpText').innerText = `[Demo OTP: ${data.debugOtp}]`;
-                showCustomModal("OTP Sent", "An OTP has been generated for verification.", true, false);
+                document.getElementById('debugOtpText').innerText = data.debugOtp ? `[Demo OTP: ${data.debugOtp}]` : "";
+                showCustomModal("OTP Sent", "An OTP has been sent for verification.", true, false);
+            } else {
+                showCustomModal("Error", data.message, false, false);
+            }
+        }
+
+        // রিসেন্ড ওটিপি রিকোয়েস্ট পাঠানোর ফাংশন
+        async function resendOtp() {
+            if (!lastRegisterData) return;
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lastRegisterData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                if (data.debugOtp) {
+                    document.getElementById('debugOtpText').innerText = `[Demo OTP: ${data.debugOtp}]`;
+                }
+                showCustomModal("OTP Resent", "A new OTP has been sent successfully.", true, false);
             } else {
                 showCustomModal("Error", data.message, false, false);
             }
