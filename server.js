@@ -12,12 +12,12 @@ const users = [];
 const activityLogs = [];
 const otpStore = {};
 
-// জিমেইল ট্রান্সপোর্টার কনফিগারেশন (আপনার জিমেইল এবং অ্যাপ পাসওয়ার্ড এখানে বসাবেন)
+// জিমেইল ট্রান্সপোর্টার কনফিগারেশন (আপনার জিমেইল এবং অ্যাপ পাসওয়ার্ড এখানে বসাবেন)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'profynelabs@gmail.com',       // আপনার জিমেইল আইডি দিন
-        pass: 'omnmdklefgpsvkkx'           // জিমেইলের App Password দিন
+        pass: 'omnmdklefgpsvkkx'             // জিমেইলের App Password দিন
     }
 });
 
@@ -52,7 +52,7 @@ app.post('/api/register', async (req, res) => {
     try {
         const mailOptions = {
             from: '"Profyne Labs" <profynelabs@gmail.com>',
-            to: email, // রেজিস্ট্রেশন ফর্মে দেওয়া ইউজারের ইমেইল
+            to: email, // রেজিস্ট্রেশন ফর্মে দেওয়া ইউজারের ইমেইল
             subject: 'Your Account Verification OTP - Profyne Labs',
             text: `Hello ${fullname},\n\nYour OTP verification code is: ${otp}\n\nPlease use this code to complete your registration.`
         };
@@ -203,6 +203,8 @@ app.delete('/api/admin/user/:id', (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log(`PROFYNE LABS Server running on http://localhost:3000 (Email OTP & BD Time Applied)`);
+// রেন্ডার এবং লোকাল উভয় সার্ভারের জন্য ডায়নামিক পোর্ট সেটআপ
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`PROFYNE LABS Server running on port ${PORT} (Email OTP & BD Time Applied)`);
 });
