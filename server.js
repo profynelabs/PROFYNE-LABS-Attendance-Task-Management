@@ -11,8 +11,9 @@ const users = [];
 const activityLogs = [];
 const otpStore = {};
 
+// হোম পেজ বা রুট ইউআরএল এ ভিজিট করলে সরাসরি লগইন পেজ দেখাবে
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'register.html'));
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.post('/api/register', (req, res) => {
@@ -131,11 +132,10 @@ app.get('/api/logs', (req, res) => {
 });
 
 // ----------------------------------------------------------------------------------
-// অ্যাডমিন ড্যাশবোর্ডের জন্য সকল রেজিস্টার্ড ইউজারের তালিকা পাওয়ার এপিআই
+// অ্যাডমিন ড্যাশবোর্ডের জন্য সকল রেজিস্টার্ড ইউজারের তালিকা পাওয়ার এপিআই
 app.get('/api/admin/users', (req, res) => {
-    // এখানে আইডি হিসেবে ফোন নম্বর ব্যবহার করা হয়েছে, তাই ইউজার অবজেক্টে id প্রপার্টি যোগ করে পাঠানো হলো
     const formattedUsers = users.map(u => ({
-        id: u.phone, // ডিলিট করার সুবিধার জন্য ফোন নম্বরটিকে আইডি হিসেবে ধরা হলো
+        id: u.phone,
         fullname: u.fullname,
         designation: u.designation,
         email: u.email,
@@ -152,7 +152,7 @@ app.delete('/api/admin/user/:id', (req, res) => {
     const index = users.findIndex(u => u.phone === userId);
 
     if (index !== -1) {
-        users.splice(index, 1); // অ্যারে থেকে ইউজার মুছে ফেলা হলো
+        users.splice(index, 1);
         res.json({ success: true, message: "User deleted successfully" });
     } else {
         res.status(404).json({ success: false, message: "User not found!" });
